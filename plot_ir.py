@@ -16,8 +16,59 @@ from PIL import PngImagePlugin, Image
 import tifffile
 
 
-dirTelops = '/home/paugam/Data/ATR42/as250026/telops'
+#dirTelops = '/home/paugam/Data/ATR42/as250026/telops'
+#dirTelops = '/media/paugam/gast/ATR42_test/as250018/telops/'
+#dirTelops = '/home/paugam/Data/ATR_test/flight01/telops/'
+dirTelops = '/media/paugam/gast/ATR42/as250018/telops/'
+
 if True:
+    extractionName='Transects/001'
+    flightname = 'as250018'
+    start_FrameID= 7436606
+    end_FrameID  = 7455542
+    start_dt = None
+    end_dt   = None 
+    #dt_period = 0.1
+    flag_bands = 1
+
+
+if False:
+    extractionName='Transects/001'
+    flightname = 'piper01'
+    start_FrameID=175882
+    end_FrameID  =187068
+    start_dt = None
+    end_dt   = None 
+    #dt_period = 0.1
+    flag_bands = 1
+if False:
+    extractionName='Transects/002'
+    flightname = 'piper01'
+    start_FrameID= 203257
+    end_FrameID  = 210485
+    start_dt = None
+    end_dt   = None 
+    #dt_period = 0.1
+    flag_bands = 1
+if False:
+    extractionName='Transects/003'
+    flightname = 'piper01'
+    start_FrameID= 227133
+    end_FrameID  = 245628
+    start_dt = None
+    end_dt   = None 
+    #dt_period = 0.1
+    flag_bands = 1
+if False:
+    extractionName='Transects/004'
+    flightname = 'piper01'
+    start_FrameID= 246833
+    end_FrameID  = 254577
+    start_dt = None
+    end_dt   = None 
+    #dt_period = 0.1
+    flag_bands = 1
+if False:
     extractionName='Sijean06'
     flightname = 'SILEX_test001'
     start_FrameID=1190580
@@ -84,7 +135,10 @@ idxaxes = [0, 3, 6, 7, 8, 5, 2, 1]
 lastTimePlotted = gdf_clipped.sort_values(by='FrameID')['timestamp'].iloc[0]
 flag_grab_other_fr = False
 for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
-  
+   
+    if iii % 10 != 0:
+        continue
+
     #print(infoframe['FWPosition'], (infoframe['timestamp'] - lastTimePlotted).total_seconds(), lastTimePlotted)
     filename = infoframe['filename']
     data, header, specialPixel, nonSpecialPixel = read_ircam(filename, frames=[infoframe['iframe']] )
@@ -113,7 +167,7 @@ for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
         figsize = (target_width / dpi, target_height / dpi)
         fig = plt.figure(figsize=figsize, dpi=dpi)
         ax = plt.subplot(111)
-        ax.imshow(img[:,::-1], origin='lower' ,vmin=4000,vmax=5500)
+        ax.imshow(img[:,::-1], origin='lower' ,vmin=15000,vmax=35000)
         ax.set_axis_off()
         plt.subplots_adjust(left=0, right=1, top=1, bottom=0)  # Remove padding/margins
         plt.margins(0)  # No padding
@@ -137,24 +191,31 @@ for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
         os.makedirs(os.path.dirname(tif_path), exist_ok=True)
         # Save as float32 TIFF with metadata
         tifffile.imwrite(
-            tif_path,
-            img[::-1,::-1].astype('float32'),
-            metadata={
-                "Time": str(infoframe['timestamp']),
-                "FrameID": str(infoframe['FrameID'])
-            }
-        )
+                tif_path,
+                img[::-1,::-1].astype('float32'),
+                metadata={
+                    "Time": str(infoframe['timestamp']),
+                    "FrameID": str(infoframe['FrameID']),
+                    "ExposureTime": infoframe['ExposureTime'],
+                    "ExposureAuto": infoframe['ExposureAuto'],
+                    "AECResponseTime": infoframe['AECResponseTime'],
+                    "AECImageFraction": infoframe['AECImageFraction'],
+                    "AECTargetWellFilling": infoframe['AECTargetWellFilling'],
+                } 
+            )
+        if flag_bands > 1: 
 
-        fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
-        axes = axes.flatten()
-        fig.suptitle(f"{infoframe['timestamp']}\n lon:{infoframe['Latitude_deg']} lat:{infoframe['Latitude_deg']}, alt(m):{infoframe['GPSAltitude']/100}", fontsize=12)
+            fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
+            axes = axes.flatten()
+            fig.suptitle(f"{infoframe['timestamp']}\n lon:{infoframe['Latitude_deg']} lat:{infoframe['Latitude_deg']}, alt(m):{infoframe['GPSAltitude']/100}", fontsize=12)
         lastTimePlotted = infoframe['timestamp']
         flag_grab_other_fr = True 
     
-    if (flag_grab_other_fr) and (infoframe['FWPosition'] < 7):
-        print(' ', end='')
-        axes[idxaxes[infoframe['FWPosition']]].imshow(img[:,::-1], origin='lower') 
-        axes[idxaxes[infoframe['FWPosition']]].set_title(f"filtre{infoframe['FWPosition']+1}")
+        if flag_bands > 1: 
+            if (flag_grab_other_fr) and (infoframe['FWPosition'] < 7):
+                print(' ', end='')
+                axes[idxaxes[infoframe['FWPosition']]].imshow(img[:,::-1], origin='lower') 
+                axes[idxaxes[infoframe['FWPosition']]].set_title(f"filtre{infoframe['FWPosition']+1}")
 
         print( iii, ii, infoframe['FWPosition'], infoframe['FrameID'], (infoframe['timestamp'] - lastTimePlotted).total_seconds(), infoframe['timestamp'], infoframe['GPSLatitude']*1.e-7, infoframe['GPSLongitude']*1.e-7)
     
@@ -163,7 +224,7 @@ for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
             tif_path = f"{dirTelops}/../{extractionName}/tif_f5/f5-{ii:09d}.tif"
             # Ensure directory exists
             os.makedirs(os.path.dirname(tif_path), exist_ok=True)
-            # Save as float32 TIFF with metadata
+            '''# Save as float32 TIFF with metadata
             tifffile.imwrite(
                 tif_path,
                 img[::-1,::-1].astype('float32'),
@@ -172,6 +233,22 @@ for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
                     "FrameID": str(infoframe['FrameID'])
                 }
             )
+            '''
+            # Save as float32 TIFF with metadata
+            tifffile.imwrite(
+                tif_path,
+                img[::-1,::-1].astype('float32'),
+                metadata={
+                    "Time": str(infoframe['timestamp']),
+                    "FrameID": str(infoframe['FrameID']),
+                    "ExposureTime": infoframe['ExposureTime'],
+                    "ExposureAuto": infoframe['ExposureAuto'],
+                    "AECResponseTime": infoframe['AECResponseTime'],
+                    "AECImageFraction": infoframe['AECImageFraction'],
+                    "AECTargetWellFilling": infoframe['AECTargetWellFilling'],
+                } 
+            )
+
 
 
     if (flag_grab_other_fr) and (infoframe['FWPosition'] == 7): 
@@ -182,4 +259,8 @@ for iii, infoframe in gdf_clipped.sort_values(by='FrameID').iterrows():
         ii+=1
         flag_grab_other_fr = False        
     
+
+    if flag_bands == 1: 
+        flag_grab_other_fr = False
+        ii+=1
 

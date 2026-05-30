@@ -12,8 +12,17 @@ from datetime import datetime
 #dirTelops = '/home/paugam/Data/ATR42/as250018/telops'
 #flightname = dirTelops.split('/')[-2]
 
-dirTelops = '/home/paugam/Data/ATR42/as250026/telops'
-flightname='SILEX_test001' # bad naming of the file 
+#dirTelops = '/home/paugam/Data/ATR42/as250026/telops'
+#flightname='SILEX_test001' # bad naming of the file 
+
+#dirTelops = '/media/paugam/gast/ATR42_test/as250018/telops/'
+#flightname = 'SILEX_test01'
+
+#dirTelops = '/home/paugam/Data/ATR_test/flight01/telops/'
+#flightname = 'piper01'
+
+dirTelops = '/media/paugam/gast/ATR42/as250018/telops/'
+flightname = 'as250018'
 
 root_dir = Path(dirTelops)
 telopsfiles = list(root_dir.rglob('*.hcc'))  
@@ -30,7 +39,7 @@ else:
     df = None
     for ii, telopsfile in enumerate(telopsfiles_sorted):
         
-        if flightname not in telopsfile.name: continue
+        #if flightname not in telopsfile.name: continue
         print( f"{ii}/{len(telopsfiles)} - {os.path.basename(telopsfile)}", end='  ')
         sys.stdout.flush()
 
